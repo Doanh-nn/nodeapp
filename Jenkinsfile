@@ -9,7 +9,7 @@ pipeline {
         stage('push-iamge') {
             steps {
                 withDockerRegistry(credentialsId: 'harbor-registry', url: 'https://harbor.mobio.io/demo/') {
-                    sh 'docker build -t harbor.mobio.io/demo/demo/nodeapp:latest .'
+                    sh 'docker build -t harbor.mobio.io/demo/nodeapp:latest .'
                     sh 'docker push harbor.mobio.io/demo/nodeapp:latest'
                 }
             }
