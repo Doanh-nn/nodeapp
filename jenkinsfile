@@ -1,49 +1,26 @@
 pipeline {
-
-  environment {
-    dockerimagename = "doanh/nodeapp"
-    dockerImage = ""
-  }
-
-  agent any
-
-  stages {
-
-    stage('Checkout Source') {
-      steps {
-        git 'https://github.com/Doanh-nn/nodeapp.git'
-      }
-    }
-
-    stage('Build image') {
-      steps{
-        script {
-          dockerImage = docker.build dockerimagename
+    agent any
+    stages {
+        stage('Clone') {
+            steps {
+                git 'https://github.com/Doanh-nn/nodeapp.git'
+            }
         }
-      }
-    }
-
-    stage('Pushing Image') {
-      environment {
-               registryCredential = 'harbor-registry'
-           }
-      steps{
-        script {
-          docker.withRegistry( 'https://harbor.mobio.io/demo/', registryCredential ) {
-            dockerImage.push("latest")
-          }
+        stage('push-iamge') {
+            steps {
+                withDockerRegistry(credentialsId: 'harbor-registry', url: 'https://harbor.mobio.io/demo/') {
+                    sh 'docker build -t harbor.mobio.io/demo/centos/cicd:v1 .'
+                    sh 'docker push harbor.mobio.io/demo/centos/cicd:v1'
+                }
+            }
         }
-      }
-    }
 
-    stage('Deploying App to Kubernetes') {
-      steps {
-        script {
-          kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
+        stage('Deploying App to Kubernetes') {
+            steps {
+                script {
+                kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
+                }
+            }
         }
-      }
     }
-
-  }
-
 }
